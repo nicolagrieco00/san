@@ -177,13 +177,6 @@
     <div id="result"></div>
   </div>
 
-  <div id="finalMessage">
-    <h2>Complimenti!</h2>
-    <p>Hai indovinato tutto e completato il gioco!</p>
-    <p>Andremo a cena da <strong>CRUDO</strong> a Salerno!</p>
-    <img src="https://nicolagrieco00.github.io/san/menu.jpg" alt="Menu del ristorante CRUDO">
-  </div>
-
   <script>
     const TARGET_SCORE = 8; // Ora servono 8 punti
     let gameRunning = false;
@@ -192,6 +185,7 @@
     const scoreDisplay = document.getElementById('score');
     const startBtn = document.getElementById('startBtn');
     const quizContainer = document.getElementById('quizContainer');
+    const gameContainer = document.getElementById('gameContainer');
 
     startBtn.addEventListener('click', startGame);
 
@@ -216,8 +210,9 @@
 
     function gameVictory() {
       gameRunning = false;
-      document.getElementById('gameContainer').style.display = 'none';
+      gameContainer.style.display = 'none';
       quizContainer.style.display = 'block';
+      quizContainer.scrollIntoView({ behavior: 'smooth' });
     }
   </script>
 </body>
