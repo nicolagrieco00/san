@@ -31,6 +31,8 @@
       max-width: 500px;
       padding: 0 10px;
     }
+
+    /* ========== FLAPPY HEART SECTION ========== */
     #gameContainer {
       position: relative;
       display: flex;
@@ -62,10 +64,82 @@
     #startBtn:hover {
       background-color: #ff6f6f;
     }
+
+    /* ========== QUIZ SECTION ========== */
+    #quizContainer {
+      display: none;
+      background-color: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      padding: 30px;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 40px auto;
+    }
+    #quizContainer h1 {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+    }
+    #quizContainer p {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .question {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 400px;
+      text-align: left;
+    }
+    .question label {
+      font-weight: bold;
+    }
+    .question input {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 2px solid #ff4d4d;
+      border-radius: 8px;
+      outline: none;
+      width: 100%;
+    }
+    #quizBtn {
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 25px;
+      transition: background-color 0.3s ease;
+      margin-top: 1rem;
+    }
+    #quizBtn:hover {
+      background-color: #ff6f6f;
+    }
+    #result {
+      margin: 1rem 0;
+      min-height: 150px;
+      transition: all 0.5s ease;
+    }
+
+    /* ========== FINAL MESSAGE SECTION ========== */
+    #finalMessage {
+      text-align: center;
+      margin-top: 20px;
+      display: none;
+    }
+    #finalMessage img {
+      width: 300px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
   <h1>San Valentino: Flappy Heart + Quiz</h1>
+
   <div class="info">
     <p>
       Gioca a <strong>Flappy Heart</strong>: raggiungi <strong>8 punti</strong> per sbloccare la fase successiva!<br/>
@@ -73,150 +147,77 @@
       Se fai Game Over, premi di nuovo Inizia per ripartire.
     </p>
   </div>
+
   <div id="gameContainer">
     <canvas id="gameCanvas" width="400" height="500"></canvas>
     <div id="score"></div>
     <button id="startBtn">Inizia!</button>
   </div>
+
+  <div id="quizContainer">
+    <h1>Quiz di San Valentino</h1>
+    <p>Hai superato il Flappy Heart! Ora rispondi a queste 3 domande per scoprire il locale.</p>
+
+    <div class="question">
+      <label for="q1">1. In che mese ci siamo conosciuti?</label>
+      <input type="text" id="q1" placeholder="Inserisci il mese..." />
+    </div>
+
+    <div class="question">
+      <label for="q2">2. Qual è il gigante di AoT che ha acquisito Mya?</label>
+      <input type="text" id="q2" placeholder="Nome del gigante..." />
+    </div>
+
+    <div class="question">
+      <label for="q3">3. Che giorno della settimana ci siamo fidanzati?</label>
+      <input type="text" id="q3" placeholder="Inserisci il giorno..." />
+    </div>
+
+    <button id="quizBtn">Invia risposte</button>
+    <div id="result"></div>
+  </div>
+
+  <div id="finalMessage">
+    <h2>Complimenti!</h2>
+    <p>Hai indovinato tutto e completato il gioco!</p>
+    <p>Andremo a cena da <strong>CRUDO</strong> a Salerno!</p>
+    <img src="https://nicolagrieco00.github.io/san/menu.jpg" alt="Menu del ristorante CRUDO">
+  </div>
+
   <script>
-    ///////////////////////////////////////////
-    // ========== FLAPPY HEART LOGIC =========
-    ///////////////////////////////////////////
-
-    // COSTANTI
-    const TARGET_SCORE = 8; // Cambiato da 5 a 8
-    const GRAVITY = 400;
-    const JUMP = -200;
-    const PIPE_SPEED = 70;
-    const SPAWN_INTERVAL = 1.8;
-    const PIPE_GAP = 120;
-    const PIPE_WIDTH = 50;
-
-    // Variabili di gioco
+    const TARGET_SCORE = 8; // Ora servono 8 punti
     let gameRunning = false;
-    let lastTime = 0;
-    let spawnTimer = 0;
     let score = 0;
 
-    // Parametri del cuore
-    let heartX = 50;
-    let heartY = 0;
-    let heartSize = 28;
-    let velocityY = 0;
-
-    // Tubi
-    let pipes = [];
-
-    // Canvas
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width;
-    const H = canvas.height;
-
-    // Elementi HTML
     const scoreDisplay = document.getElementById('score');
     const startBtn = document.getElementById('startBtn');
-
-    // Cuore immagine
-    const heartImg = new Image();
-    heartImg.src = 'https://cdn-icons-png.flaticon.com/512/2107/2107952.png';
+    const quizContainer = document.getElementById('quizContainer');
 
     startBtn.addEventListener('click', startGame);
 
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        flap();
-      }
-    });
-
-    document.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      flap();
-    });
-
     function startGame() {
       gameRunning = true;
-      lastTime = 0;
-      spawnTimer = 0;
       score = 0;
-      heartY = H / 2;
-      velocityY = 0;
-      pipes = [];
       scoreDisplay.textContent = 'Score: 0';
-      spawnPipe();
+    }
+
+    function gameLoop() {
+      if (!gameRunning) return;
       requestAnimationFrame(gameLoop);
     }
 
-    function flap() {
-      if (!gameRunning) return;
-      velocityY = JUMP;
-    }
-
-    function gameLoop(timestamp) {
-      if (!gameRunning) return;
-      let dt = (timestamp - lastTime) / 1000;
-      lastTime = timestamp;
-      if (dt < 0) dt = 0;
-      if (dt > 0.05) dt = 0.05;
-      update(dt);
-      draw();
-      requestAnimationFrame(gameLoop);
-    }
-
-    function update(dt) {
-      velocityY += GRAVITY * dt;
-      heartY += velocityY * dt;
-      for (let i = 0; i < pipes.length; i++) {
-        const p = pipes[i];
-        p.x -= PIPE_SPEED * dt;
-        if (!p.passed && (p.x + PIPE_WIDTH < heartX)) {
-          p.passed = true;
-          score++;
-          scoreDisplay.textContent = `Score: ${score}`;
-          if (score >= TARGET_SCORE) {
-            gameVictory();
-          }
-        }
+    function updateScore() {
+      score++;
+      scoreDisplay.textContent = `Score: ${score}`;
+      if (score >= TARGET_SCORE) {
+        gameVictory();
       }
-      while (pipes.length && (pipes[0].x + PIPE_WIDTH < 0)) {
-        pipes.shift();
-      }
-      spawnTimer += dt;
-      if (spawnTimer >= SPAWN_INTERVAL) {
-        spawnPipe();
-        spawnTimer = 0;
-      }
-      if (heartY < 0) heartY = 0;
-      if (heartY + heartSize > H) gameOver();
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      ctx.drawImage(heartImg, heartX, heartY, heartSize, heartSize);
-      ctx.fillStyle = '#f44336';
-      for (let i = 0; i < pipes.length; i++) {
-        const p = pipes[i];
-        ctx.fillRect(p.x, 0, PIPE_WIDTH, p.topY);
-        ctx.fillRect(p.x, p.topY + PIPE_GAP, PIPE_WIDTH, H - (p.topY + PIPE_GAP));
-      }
-    }
-
-    function spawnPipe() {
-      const minY = 50;
-      const maxY = H - 50 - PIPE_GAP;
-      const topY = Math.floor(Math.random() * (maxY - minY)) + minY;
-      pipes.push({ x: W, topY: topY, passed: false });
-    }
-
-    function gameOver() {
-      gameRunning = false;
-      scoreDisplay.textContent = `Game Over! Score: ${score}`;
     }
 
     function gameVictory() {
       gameRunning = false;
-      alert("Complimenti! Ora puoi accedere al quiz!");
+      document.getElementById('gameContainer').style.display = 'none';
+      quizContainer.style.display = 'block';
     }
   </script>
 </body>
